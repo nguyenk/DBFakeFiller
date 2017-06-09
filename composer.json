@@ -1,0 +1,12 @@
+{
+  "autoload": {
+    "psr-4": { "DBFaker\\": "src/" }
+  },
+  "require": {
+    "fzaninotto/faker": "^1.6",
+    "doctrine/dbal": "^2.5",
+    "mouf/schema-analyzer": "^1.1"
+  },
+  "minimum-stability" : "dev",
+  "prefer-stable": true
+}
