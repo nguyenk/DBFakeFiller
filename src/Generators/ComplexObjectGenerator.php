@@ -1,9 +1,10 @@
 <?php
 namespace DBFaker\Generators;
 
+use Doctrine\DBAL\Schema\Column;
 use Faker\Generator;
 
-class ComplexObjectGenerator implements FakeDataGeneratorInterface
+class ComplexObjectGenerator extends AbstractGenerator
 {
 
     /**
@@ -12,28 +13,53 @@ class ComplexObjectGenerator implements FakeDataGeneratorInterface
     private $generator;
 
     /**
+     * @var int
+     */
+    private $depth;
+
+    /**
+     * @var boolean
+     */
+    private $toArray;
+
+    /**
      * ComplexObjectGenerator constructor.
      * @param Generator $generator
      */
-    public function __construct(Generator $generator)
+    public function __construct(Generator $generator, $depth = null, $toArray = true)
     {
         $this->generator = $generator;
+        $this->depth = $depth;
+        $this->toArray = $toArray;
     }
 
 
-    public function getValue()
+    public function getData(Column $column)
     {
-        $depth = random_int(0, 5);
-        return $this->generateRandomObject($depth);
+        if ($this->depth === null){
+            $this->depth = random_int(2, 5);
+        }
+        $object = $this->generateRandomObject($this->depth);
+        if ($this->toArray){
+            $object = json_decode(json_encode($object, JSON_OBJECT_AS_ARRAY), true);
+        }
+        return $object;
     }
 
     private function generateRandomObject($depth)
     {
         $obj = new \stdClass();
-        $nbProps = random_int(5, 20);
+        $nbProps = random_int(2, 5);
+        $hasGoneDeeper = false;
         for ($i = 0; $i < $nbProps; $i++){
             $propName = $this->randomPropName();
-            $value = $depth == 0 ? $this->randomValue() : $this->generateRandomObject($depth - 1);
+            $goDeeper = $depth != 0 && (random_int(0,10) > 7 || !$hasGoneDeeper);
+            if ($goDeeper){
+                $hasGoneDeeper = true;
+                $value = $this->generateRandomObject($depth - 1);
+            }else{
+                $value = $this->randomValue();
+            }
             $obj->$propName = $value;
         }
         return $obj;
@@ -50,7 +76,7 @@ class ComplexObjectGenerator implements FakeDataGeneratorInterface
             $this->generator->dateTime,
             $this->generator->longitude
         ];
-        return array_rand($generators);
+        return $generators[array_rand($generators)];
     }
 
     private function randomPropName()

@@ -5,6 +5,7 @@ namespace DBFaker;
 use DBFaker\Generators\ComplexObjectGenerator;
 use DBFaker\Generators\GeneratorFactory;
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Schema\AbstractSchemaManager;
 use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Schema\ForeignKeyConstraint;
 use Doctrine\DBAL\Schema\Table;
@@ -19,6 +20,11 @@ class DBFaker
      * @var Connection
      */
     private $connection;
+
+    /**
+     * @var AbstractSchemaManager
+     */
+    private $schemaManager;
 
     /**
      * @var GeneratorFactory
@@ -56,6 +62,11 @@ class DBFaker
     private $fkTargets = [];
 
     /**
+     * @var ForeignKeyConstraint[]
+     */
+    private $foreignKeyStore = [];
+
+    /**
      * DBExplorer constructor.
      * @param Connection $connection
      * @param Generator $faker
@@ -65,14 +76,24 @@ class DBFaker
         $this->connection = $connection;
         $this->generatorFactory = $generatorFactory;
         $this->schemaAnalyzer = $schemaAnalyzer;
+        $this->schemaManager = $connection->getSchemaManager();
+    }
+
+    public function run()
+    {
+        $this->buildPrimaryKeys();
+        $this->generateFakeData();
+        $this->dropForeignKeys();
+        $this->insertFakeData();
+        $this->restoreForeignKeys();
+        //TODO : some checks ?
+
     }
 
 
     public function generateFakeData()
     {
-        $this->buildPrimaryKeys();
-
-        $tables = $this->connection->getSchemaManager()->listTables();
+        $tables = $this->this->schemaManager->listTables();
         foreach ($tables as $table) {
             if (array_key_exists($table->getName(), $this->referenceTableData)) {
                 //Skip, table is a reference table
@@ -80,11 +101,13 @@ class DBFaker
             }
             $this->data[$table->getName()] = $this->getFakeDataForTable($table);
         }
+
+        //todo : set autoincrement values for fake data tables
     }
 
     private function buildPrimaryKeys()
     {
-        $tables = $this->connection->getSchemaManager()->listTables();
+        $tables = $this->this->schemaManager->listTables();
         foreach ($tables as $table) {
             $primaryKeys = $table->getPrimaryKey()->getColumns();
             /** @var  $primaryKey  Column */
@@ -119,13 +142,15 @@ class DBFaker
 
     private function getFakeDataForTable(Table $table) : array
     {
+        $data = [];
         for ($i = 0; $i < $this->fakeTableRowNumbers[$table->getName()]; $i++) {
             $row = [];
             foreach ($table->getColumns() as $column) {
-                $row[$column->getName()] = $this->getFakeDataForColumn($column, $table);
+                $row[$column] = $this->getFakeDataForColumn($column, $table);
             }
-            $this->data[$table->getName()][] = $row;
+            $data[] = $row;
         }
+        return $data;
     }
 
     private function getFakeDataForColumn(Column $column, Table $table)
@@ -138,7 +163,7 @@ class DBFaker
             $value = $this->getPkRegistry($table, $column->getName())->getNextValue();
         } //P3 : other data will be Faked depending of cokumn's type and attributes
         else {
-            $value = $this->getFakeValueForColumn($column);
+            $value = $this->getFakeValueForColumn($table, $column);
         }
     }
 
@@ -174,14 +199,14 @@ class DBFaker
             $foreignColumn = $foreignKey->getForeignColumns()[$foreignColumnIndex];
             $this->fkTargets[$foreignKey->getName()] = $foreignColumn;
         }
-        $foreignTable = $this->connection->getSchemaManager()->listTableDetails($foreignKey->getForeignTableName());
+        $foreignTable = $this->this->schemaManager->listTableDetails($foreignKey->getForeignTableName());
 
         return $this->getPkRegistry($foreignTable, $foreignColumn)->getRandomValue();
     }
 
-    private function getFakeValueForColumn(Column $column)
+    private function getFakeValueForColumn(Table $table, Column $column)
     {
-        $generator = $this->generatorFactory->create($this->faker, $column);
+        $generator = $this->generatorFactory->getGenerator($this->faker, $table, $column);
         return $generator->getValue();
     }
 
@@ -196,5 +221,37 @@ class DBFaker
     public function setFakeTableRowNumbers(array $fakeTableRowNumbers)
     {
         $this->fakeTableRowNumbers = $fakeTableRowNumbers;
+    }
+
+    private function dropForeignKeys()
+    {
+        $this->foreignKeyStore = [];
+        $tables = $this->schemaManager->listTables();
+        foreach ($tables as $table){
+            foreach ($table->getForeignKeys() as $fk){
+                $this->foreignKeyStore[$table->getName()][] = $fk;
+            }
+        }
+
+    }
+
+    private function restoreForeignKeys()
+    {
+        foreach ($this->foreignKeyStore as $fk){
+            $this->schemaManager->createForeignKey($fk);
+        }
+    }
+
+    private function insertFakeData()
+    {
+        foreach ($this->data as $tableName => $rows){
+            foreach ($rows as $column => $row){
+                /** @var $column Column */
+                $types[] = $column->getType()->getBindingType();
+                $columNames[] = $column->getName();
+            }
+            $data = array_combine($columNames, $row);
+            $this->connection->insert($tableName, $data, $types);
+        }
     }
 }
