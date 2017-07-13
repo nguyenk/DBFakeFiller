@@ -9,13 +9,11 @@
 namespace DBFaker\Generators;
 
 
-use DBFaker\ColumnInspector;
+use DBFaker\Helpers\NumericColumnLimitHelper;
 use Doctrine\DBAL\Schema\Column;
-use Doctrine\DBAL\Types\DecimalType;
-use Doctrine\DBAL\Types\Type;
 use Faker\Generator;
 
-class NumericGenerator extends AbstractGenerator
+class NumericGenerator implements FakeDataGeneratorInterface
 {
 
     /**
@@ -28,9 +26,9 @@ class NumericGenerator extends AbstractGenerator
         $this->faker = $faker;
     }
 
-    public function getdata(Column $column)
+    public function getValue(Column $column)
     {
-        $inspector = new ColumnInspector($column);
+        $inspector = new NumericColumnLimitHelper($column);
         return $this->faker->randomFloat(10, $inspector->getMinNumericValue(), $inspector->getMaxNumericValue());
     }
 

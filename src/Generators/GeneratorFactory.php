@@ -12,6 +12,7 @@ namespace DBFaker\Generators;
 use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Schema\Table;
 use Doctrine\DBAL\Types\Type;
+use Faker\Factory;
 use Faker\Generator;
 
 class GeneratorFactory
@@ -26,13 +27,30 @@ class GeneratorFactory
      */
     private $defaultGenerators;
 
-    public function getGenerator(Table $table, Column $column, Generator $faker)
+    /**
+     * @var Generator
+     */
+    private $faker;
+
+    public function __construct()
     {
-        $identifier = $table->getFullQualifiedName() . "." . $column->getFullQualifiedName();
+        $this->faker = Factory::create();
+    }
+
+    /**
+     * @param Table $table
+     * @param Column $column
+     * @param Generator $faker
+     * @return FakeDataGeneratorInterface
+     * @throws \Exception
+     */
+    public function getGenerator(Table $table, Column $column)
+    {
+        $identifier = $table->getName() . "." . $column->getName();
         if (!isset($this->generators[$identifier])){
-            $defaultGenerator = $this->defaultGenerator($column->getType(), $faker);
+            $defaultGenerator = $this->getDefaultGenerator($column->getType());
             if ($defaultGenerator === null){
-                throw new \Exception("No default generator found for column '".$identifier."' of type '".$column->getType()->getName()."', you must provide it !")
+                throw new \Exception("No default generator found for column '".$identifier."' of type '".$column->getType()->getName()."', you must provide it !");
             }
             $this->generators[$identifier] = $defaultGenerator;
         }
@@ -43,8 +61,9 @@ class GeneratorFactory
      * @param Column $column
      * @return FakeDataGeneratorInterface
      */
-    private function defaultGenerator(Type $type, Generator $faker)
+    private function getDefaultGenerator(Type $type)
     {
+        $faker = $this->faker;
         $type = $type->getName();
         if (!isset($this->defaultGenerators[$type])){
             switch ($type){
@@ -73,6 +92,8 @@ class GeneratorFactory
                 case Type::BIGINT :
                 case Type::INTEGER :
                 case Type::SMALLINT :
+                    $generator = new NumericGenerator($faker);
+                    break;
                 case Type::FLOAT :
                     $generator = new NumericGenerator($faker);
                     break;
@@ -97,7 +118,8 @@ class GeneratorFactory
                 case Type::STRING :
                 case Type::TEXT :
                     $generator = new SimpleGenerator(function(Column $column) use ($faker) {
-                        return $faker->text($column->getLength());
+                        $maxLength = $column->getLength() > 5 ? max($column->getLength(), 300) : $column->getLength();
+                        return $column->getLength() > 5 ? $faker->text($maxLength) : substr($faker->text(5), 0, $column->getLength() - 1);
                     });
                     break;
                 case Type::BINARY :
@@ -113,20 +135,22 @@ class GeneratorFactory
 
 
         return $this->defaultGenerators[$type];
-        
-        $mapping = [
-            Type::BINARY => 'binary',
-            Type::BLOB => 'blob',
-            Type::GUID => 'guid',
-        ];
     }
 
     /**
-     * @param array $generators
+     * @param  callable|FakeDataGeneratorInterface $generator
+     * @param string $table
+     * @param string $column
      */
-    public function setGeneratorForColumn(FakeDataGeneratorInterface $generator, Table $table, Column $column)
+    public function setGeneratorForColumn($generator, string $table, string $column)
     {
-        $this->generators[$table->getFullQualifiedName() . "." . $column->getFullQualifiedName()] = $generator;
+        if (is_callable($generator)){
+            $generator = new SimpleGenerator($generator);
+        }
+        if (!$generator instanceof FakeDataGeneratorInterface){
+            throw new \Exception("function 'setGeneratorForColumn' only takes callable or a FakeDataGeneratorInterface");
+        }
+        $this->generators[$table . "." . $column] = $generator;
     }
 
     /**

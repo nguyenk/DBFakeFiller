@@ -11,20 +11,15 @@ namespace DBFaker\Generators;
 
 use Doctrine\DBAL\Schema\Column;
 
-class SimpleGenerator extends AbstractGenerator
+class SimpleGenerator implements FakeDataGeneratorInterface
 {
-
-    /**
-     * @var callable
-     */
-    private $generator;
 
     public function __construct(callable $callback)
     {
         $this->callback = $callback;
     }
 
-    public function getdata(Column $column)
+    public function getValue(Column $column)
     {
         return call_user_func($this->callback, $column);
     }

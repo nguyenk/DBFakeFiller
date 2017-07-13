@@ -4,7 +4,7 @@ namespace DBFaker\Generators;
 use Doctrine\DBAL\Schema\Column;
 use Faker\Generator;
 
-class ComplexObjectGenerator extends AbstractGenerator
+class ComplexObjectGenerator implements FakeDataGeneratorInterface
 {
 
     /**
@@ -34,7 +34,7 @@ class ComplexObjectGenerator extends AbstractGenerator
     }
 
 
-    public function getData(Column $column)
+    public function getValue(Column $column)
     {
         if ($this->depth === null){
             $this->depth = random_int(2, 5);

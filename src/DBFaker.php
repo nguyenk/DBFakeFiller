@@ -2,16 +2,13 @@
 namespace DBFaker;
 
 
-use DBFaker\Generators\ComplexObjectGenerator;
 use DBFaker\Generators\GeneratorFactory;
+use DBFaker\Helpers\PrimaryKeyRegistry;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Schema\AbstractSchemaManager;
 use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Schema\ForeignKeyConstraint;
 use Doctrine\DBAL\Schema\Table;
-use Doctrine\DBAL\Types\Type;
-use Faker\Generator;
-use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
 
 class DBFaker
 {
@@ -32,16 +29,6 @@ class DBFaker
     private $generatorFactory;
 
     /**
-     * @var SchemaAnalyzer
-     */
-    private $schemaAnalyzer;
-
-    /**
-     * @var array
-     */
-    private $referenceTables = [];
-
-    /**
      * @var array
      */
     private $fakeTableRowNumbers = [];
@@ -57,87 +44,67 @@ class DBFaker
     private $primaryKeyRegistries = [];
 
     /**
-     * @var array
-     */
-    private $fkTargets = [];
-
-    /**
-     * @var ForeignKeyConstraint[]
+     * @var ForeignKeyConstraint[][]
      */
     private $foreignKeyStore = [];
 
     /**
-     * DBExplorer constructor.
-     * @param Connection $connection
-     * @param Generator $faker
+     * @var string
      */
-    public function __construct(Connection $connection, GeneratorFactory $generatorFactory, SchemaAnalyzer $schemaAnalyzer)
+    private $feedFileName;
+
+    /**
+     * @var int
+     */
+    private $nullProbability = 10;
+
+    /*           ___
+               /    \
+              |      |
+              \      /
+                    /
+                  /
+                  |
+
+                  o
+    */
+
+    /**
+     * DBFaker constructor.
+     * @param Connection $connection
+     * @param GeneratorFactory $generatorFactory
+     * @param SchemaAnalyzer $schemaAnalyzer
+     */
+    public function __construct(Connection $connection, GeneratorFactory $generatorFactory)
     {
         $this->connection = $connection;
         $this->generatorFactory = $generatorFactory;
-        $this->schemaAnalyzer = $schemaAnalyzer;
         $this->schemaManager = $connection->getSchemaManager();
     }
 
-    public function run()
+    public function fakeDB()
     {
-        $this->buildPrimaryKeys();
+        set_time_limit(0);
         $this->generateFakeData();
         $this->dropForeignKeys();
         $this->insertFakeData();
         $this->restoreForeignKeys();
-        //TODO : some checks ?
-
     }
 
 
     public function generateFakeData()
     {
-        $tables = $this->this->schemaManager->listTables();
-        foreach ($tables as $table) {
-            if (array_key_exists($table->getName(), $this->referenceTableData)) {
-                //Skip, table is a reference table
-                continue;
+        if ($this->feedFileName !== null && file_exists($this->feedFileName) && file_get_contents($this->feedFileName)){
+            $this->data = unserialize(file_get_contents($this->feedFile));
+        }else{
+            foreach ($this->fakeTableRowNumbers as $tableName => $lines) {
+                $table = $this->schemaManager->listTableDetails($tableName);
+                $this->data[$table->getName()] = $this->getFakeDataForTable($table);
             }
-            $this->data[$table->getName()] = $this->getFakeDataForTable($table);
-        }
-
-        //todo : set autoincrement values for fake data tables
-    }
-
-    private function buildPrimaryKeys()
-    {
-        $tables = $this->this->schemaManager->listTables();
-        foreach ($tables as $table) {
-            $primaryKeys = $table->getPrimaryKey()->getColumns();
-            /** @var  $primaryKey  Column */
-            foreach ($primaryKeys as $primaryKey) {
-                $registry = $this->getPkRegistry($table, $primaryKey);
-                if (array_search($table->getName(), $this->referenceTables)) {
-                    $registry->loadValuesFromTable();
-                } else if (array_key_exists($table->getName(), $this->fakeTableRowNumbers)) {
-                    $registry->generateValues($this->fakeTableRowNumbers[$table->getName()]);
-                } else {
-                    //TODO : Throw or pass ? (some tables are may not be filled)
-                }
+            if ($this->feedFileName !== null){
+                file_put_contents($this->feedFileName, serialize($this->data));
             }
         }
-    }
-
-    /**
-     * @param Table $table
-     * @param string $primaryKey
-     * @return PrimaryKeyRegistry
-     */
-    private function getPkRegistry(Table $table, string $primaryKey)
-    {
-        if (!isset($this->primaryKeyRegistries[$table->getName()])) {
-            $this->primaryKeyRegistries[$table->getName()] = [];
-            if (!isset($this->primaryKeyRegistries[$table->getName()][$primaryKey])) {
-                $this->primaryKeyRegistries[$table->getName()][$primaryKey] = new PrimaryKeyRegistry($this->connection, $table, $primaryKey);
-            }
-        }
-        return $this->primaryKeyRegistries[$table->getName()][$primaryKey];
     }
 
     private function getFakeDataForTable(Table $table) : array
@@ -146,112 +113,182 @@ class DBFaker
         for ($i = 0; $i < $this->fakeTableRowNumbers[$table->getName()]; $i++) {
             $row = [];
             foreach ($table->getColumns() as $column) {
-                $row[$column] = $this->getFakeDataForColumn($column, $table);
+                //Check column isn't a PK : PK will be set automatically (NO UUID support)
+                if (array_search($column->getName(), $table->getPrimaryKeyColumns()) !== false) {
+                    $value = null;
+                }
+                //Other data will be Faked depending of column's type and attributes
+                else {
+                    if (!$column->getNotnull() && $this->nullProbabilityOccured()){
+                        $value = null;
+                    }else{
+                        $value = $this->generatorFactory->getGenerator($table, $column)->getValue($column);
+                    }
+                }
+                $row[$column->getName()] = $value;
             }
             $data[] = $row;
         }
         return $data;
     }
 
-    private function getFakeDataForColumn(Column $column, Table $table)
-    {
-        //Priority 1 : ForeignKeys are not generated, but randomly picked inside the PK's Pool
-        if ($foriegnKey = $this->getForeignKeyDetails($column, $table)) {
-            $value = $this->getRandomForeignKeyValue($foriegnKey, $column);
-        } //Priority 2 : Primary Keys, that are not FKs are picked inside PK's Pool values
-        else if (array_search($column->getName(), $table->getPrimaryKeyColumns()) !== false) {
-            $value = $this->getPkRegistry($table, $column->getName())->getNextValue();
-        } //P3 : other data will be Faked depending of cokumn's type and attributes
-        else {
-            $value = $this->getFakeValueForColumn($table, $column);
-        }
-    }
-
-    private function getForeignKeyDetails(Column $column, Table $table)
-    {
-        $tableForeignKeys = $table->getForeignKeys();
-        foreach ($tableForeignKeys as $foreignKey) {
-            foreach ($foreignKey->getLocalColumns() as $index => $colName) {
-                if ($colName == $column->getName()) {
-                    return $foreignKey;
-                }
-            }
-        }
-        return null;
-    }
-
-    private function getRandomForeignKeyValue(ForeignKeyConstraint $foreignKey, Column $localColumn)
-    {
-        if (isset($this->fkTargets[$foreignKey->getName()])) {
-            $foreignColumn = $this->fkTargets[$foreignKey->getName()];
-        } else {
-            $foreignColumnIndex = null;
-            foreach ($foreignKey->getLocalColumns() as $index => $colName) {
-                if ($colName == $localColumn->getName()) {
-                    $foreignColumnIndex = $index;
-                }
-            }
-            if (!$foreignColumnIndex) {
-                throw new \Exception("Could not find foreign column matching ForeignKey '"
-                    . $foreignKey->getLocalTableName() . "." . $foreignKey->getName() . "' with local column : "
-                    . $localColumn->getName());
-            }
-            $foreignColumn = $foreignKey->getForeignColumns()[$foreignColumnIndex];
-            $this->fkTargets[$foreignKey->getName()] = $foreignColumn;
-        }
-        $foreignTable = $this->this->schemaManager->listTableDetails($foreignKey->getForeignTableName());
-
-        return $this->getPkRegistry($foreignTable, $foreignColumn)->getRandomValue();
-    }
-
-    private function getFakeValueForColumn(Table $table, Column $column)
-    {
-        $generator = $this->generatorFactory->getGenerator($this->faker, $table, $column);
-        return $generator->getValue();
-    }
-
     /**
-     * @param array $referenceTables
+     * Drop all foreign keys because it is too complicated to solve the table reference graph in order to generate data in the right order.
+     * FKs are stored to be recreated at the end
      */
-    public function setReferenceTables(array $referenceTables)
-    {
-        $this->referenceTables = $referenceTables;
-    }
-
-    public function setFakeTableRowNumbers(array $fakeTableRowNumbers)
-    {
-        $this->fakeTableRowNumbers = $fakeTableRowNumbers;
-    }
-
-    private function dropForeignKeys()
+    private function dropForeignKeys() : void
     {
         $this->foreignKeyStore = [];
         $tables = $this->schemaManager->listTables();
         foreach ($tables as $table){
             foreach ($table->getForeignKeys() as $fk){
                 $this->foreignKeyStore[$table->getName()][] = $fk;
+                $this->schemaManager->dropForeignKey($fk, $table);
             }
         }
 
     }
 
-    private function restoreForeignKeys()
+    /**
+     * Restore the foreign keys based on the ForeignKeys store built when calling dropForeignKeys()
+     */
+    private function restoreForeignKeys() : void
     {
-        foreach ($this->foreignKeyStore as $fk){
-            $this->schemaManager->createForeignKey($fk);
+        foreach ($this->foreignKeyStore as $tableName => $fks){
+            foreach ($fks as $fk){
+                $this->schemaManager->createForeignKey($fk, $tableName);
+            }
         }
     }
 
-    private function insertFakeData()
+    /**
+     * Inserts the data. This is done in 2 steps :
+     *   - first insert data for all lines / columns. FKs will be assigned values that only match there type. This step allows to create PK values for second step.
+     *   - second turn will update FKs to set random PK values from the previously generated lines.
+     */
+    private function insertFakeData() : void
     {
+        $plateform = $this->connection->getDatabasePlatform();
+        //1 - First insert data with no FKs, and null PKs. This will generate primary keys
         foreach ($this->data as $tableName => $rows){
-            foreach ($rows as $column => $row){
-                /** @var $column Column */
-                $types[] = $column->getType()->getBindingType();
-                $columNames[] = $column->getName();
+            $table = $this->schemaManager->listTableDetails($tableName);
+
+            //initiate column types for insert
+            $first = reset($rows);
+            if ($first){
+                $types = [];
+                foreach ($first as $columnName => $value){
+                    /** @var $column Column */
+                    $column = $table->getColumn($columnName);
+                    $types[] = $column->getType()->getBindingType();
+                }
             }
-            $data = array_combine($columNames, $row);
-            $this->connection->insert($tableName, $data, $types);
+
+            //insert faked data
+            foreach ($rows as $row){
+                $dbRow = [];
+                foreach ($row as $columnName => $value){
+                    $column = $table->getColumn($columnName);
+                    $newVal = $column->getType()->convertToDatabaseValue($value, $plateform);
+                    $dbRow[$columnName] = $newVal;
+                }
+                $this->connection->insert($table->getName(), $dbRow, $types);
+            }
+            //add the new ID to the PKRegistry
+            $this->getPkRegistry($table)->addValue($this->connection->lastInsertId());
+        }
+
+        //2 - loop again on table to set FKs now that all PK have been loaded
+        foreach ($this->foreignKeyStore as $tableName => $fks){
+            if (array_search($tableName, array_keys($this->fakeTableRowNumbers)) === false){
+                //only update tables where data has been inserted
+                continue;
+            }
+            $table = $this->schemaManager->listTableDetails($tableName);
+
+            /*
+             * Build an array of foreign keys, eg:
+             * [
+             *      "user_id" => ["table" => "user", "column" => "id"],
+             *      "country_id" => ["table" => "country", "column" => "id"]
+             * ]
+             *
+             * foreign tables' PKRegistries will provide final values for local FKs columns
+             */
+            $fkInfo = [];
+            foreach ($fks as $fk){
+                $localColums = $fk->getLocalColumns();
+                $foreignColumns = $fk->getForeignColumns();
+                $foreignTable = $this->schemaManager->listTableDetails($fk->getForeignTableName());
+                foreach ($localColums as $index => $localColumn){
+                    $foreignColumn = $foreignColumns[$index];
+                    $fkInfo[$localColumn] = [
+                        "table" => $foreignTable,
+                        "column" => $foreignColumn
+                    ];
+                }
+            }
+
+            //Get all the PKs in the table (ie all the lines to update), and update the FKs with random PK values
+            $pkValues = $this->getPkRegistry($table)->loadValuesFromTable()->getAllValues();
+            foreach ($pkValues as $pkValue){
+                $newValues = [];
+                foreach ($fkInfo as $localColumn => $foreignData){
+                    $foreignTable = $foreignData["table"];
+                    $foreignColumn = $foreignData["column"];
+                    $fkPkRegistry = $this->getPkRegistry($foreignTable);
+                    $randomPk = $fkPkRegistry->loadValuesFromTable()->getRandomValue();
+                    $newValues[$localColumn] = $randomPk[$foreignColumn];
+                }
+                $this->connection->update($tableName, $newValues, $pkValue);
+            }
         }
     }
+
+    /**
+     * @param Table $table
+     * @return PrimaryKeyRegistry
+     */
+    private function getPkRegistry(Table $table) : PrimaryKeyRegistry
+    {
+        if (!isset($this->primaryKeyRegistries[$table->getName()])) {
+            $this->primaryKeyRegistries[$table->getName()] = new PrimaryKeyRegistry($this->connection, $table);
+        }
+        return $this->primaryKeyRegistries[$table->getName()];
+    }
+
+    private function nullProbabilityOccured()
+    {
+        return random_int(0, 100) < $this->nullProbability;
+    }
+
+    /**
+     * Sets the number of lignes that should be generated for each table
+     * Associative array - Key is the name of the table, and value the number of lines to the faked
+     * @param array[string, int] $fakeTableRowNumbers
+     */
+    public function setFakeTableRowNumbers(array $fakeTableRowNumbers) : void
+    {
+        $this->fakeTableRowNumbers = $fakeTableRowNumbers;
+    }
+
+    /**
+     * Feed File path. If set, this file will store the fake data to be generated.
+     * This is usefull when you want to share the same fake data
+     * @param string $feedFileName
+     */
+    public function setFeedFileName(string $feedFileName)
+    {
+        $this->feedFileName = $feedFileName;
+    }
+
+    /**
+     * Sets the null probability : chance to generate a null value for nullable columns (between 0 and 100, default is 10)
+     * @param int $nullProbability
+     */
+    public function setNullProbability(int $nullProbability)
+    {
+        $this->nullProbability = $nullProbability;
+    }
+
 }

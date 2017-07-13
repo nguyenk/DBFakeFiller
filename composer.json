@@ -3,9 +3,11 @@
     "psr-4": { "DBFaker\\": "src/" }
   },
   "require": {
+    "mouf/mouf": "~2.0.0",
     "fzaninotto/faker": "^1.6",
     "doctrine/dbal": "^2.5",
-    "mouf/schema-analyzer": "^1.1"
+    "mouf/schema-analyzer": "^1.1",
+    "symfony/console": "^3.3"
   },
   "minimum-stability" : "dev",
   "prefer-stable": true

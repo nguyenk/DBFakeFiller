@@ -4,8 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "6a02b2d5e52418bdb30ba38f59a583d2",
-    "content-hash": "2356902b6d9a6bf8a6ecac561a253a66",
+    "hash": "a19053c39a9146d872b1a04f70b9459e",
+    "content-hash": "d96522d0fdb9059ce309d31448c56ad4",
     "packages": [
         {
             "name": "clue/graph",
@@ -51,6 +51,37 @@
                 "vertex"
             ],
             "time": "2015-03-07 18:11:31"
+        },
+        {
+            "name": "container-interop/container-interop",
+            "version": "1.2.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/container-interop/container-interop.git",
+                "reference": "79cbf1341c22ec75643d841642dd5d6acd83bdb8"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/container-interop/container-interop/zipball/79cbf1341c22ec75643d841642dd5d6acd83bdb8",
+                "reference": "79cbf1341c22ec75643d841642dd5d6acd83bdb8",
+                "shasum": ""
+            },
+            "require": {
+                "psr/container": "^1.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Interop\\Container\\": "src/Interop/Container/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "description": "Promoting the interoperability of container objects (DIC, SL, etc.)",
+            "homepage": "https://github.com/container-interop/container-interop",
+            "time": "2017-02-14 19:40:03"
         },
         {
             "name": "doctrine/annotations",
@@ -621,17 +652,302 @@
             "time": "2015-03-08 10:12:01"
         },
         {
-            "name": "mouf/schema-analyzer",
-            "version": "v1.1.1",
+            "name": "mouf/classname-mapper",
+            "version": "v1.0.1",
             "source": {
                 "type": "git",
-                "url": "https://github.com/thecodingmachine/schema-analyzer.git",
-                "reference": "c96bebb47040d797266580abd9193e8a1e23e66a"
+                "url": "https://github.com/thecodingmachine/classname-mapper.git",
+                "reference": "2b11a7c83cd3487677f8dbb81fb3363f59bb4b4c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/thecodingmachine/schema-analyzer/zipball/c96bebb47040d797266580abd9193e8a1e23e66a",
-                "reference": "c96bebb47040d797266580abd9193e8a1e23e66a",
+                "url": "https://api.github.com/repos/thecodingmachine/classname-mapper/zipball/2b11a7c83cd3487677f8dbb81fb3363f59bb4b4c",
+                "reference": "2b11a7c83cd3487677f8dbb81fb3363f59bb4b4c",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.4.0"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "~4.0 | ~5.0",
+                "satooshi/php-coveralls": "~1.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Mouf\\Composer\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "David Négrier",
+                    "email": "d.negrier@thecodingmachine.com",
+                    "homepage": "http://mouf-php.com"
+                }
+            ],
+            "description": "Provides a way to find in which PHP files a class will be looked upon.",
+            "homepage": "http://mouf-php.com/packages/thecodingmachine/classname-mapper",
+            "keywords": [
+                "autoload",
+                "composer"
+            ],
+            "time": "2017-05-22 07:47:00"
+        },
+        {
+            "name": "mouf/mouf",
+            "version": "v2.0.27",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/thecodingmachine/mouf.git",
+                "reference": "6d83fab89c0ee90dc7706c2bb81969aa1bd8de64"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/thecodingmachine/mouf/zipball/6d83fab89c0ee90dc7706c2bb81969aa1bd8de64",
+                "reference": "6d83fab89c0ee90dc7706c2bb81969aa1bd8de64",
+                "shasum": ""
+            },
+            "require": {
+                "container-interop/container-interop": "~1.0",
+                "mouf/classname-mapper": "~1.0",
+                "mouf/mouf-installer": "~2.0",
+                "mouf/mouf-validators-interface": "~2.0",
+                "php": ">=5.3.9"
+            },
+            "type": "mouf-framework",
+            "extra": {
+                "mouf": {
+                    "doc": [
+                        {
+                            "title": "Installing Mouf",
+                            "url": "doc/installing_mouf.md"
+                        },
+                        {
+                            "title": "Getting started with dependency injection",
+                            "url": "doc/dependency_injection.md",
+                            "children": [
+                                {
+                                    "title": "Using Mouf UI to define instances",
+                                    "url": "doc/mouf_di_ui.md"
+                                },
+                                {
+                                    "title": "Injection techniques",
+                                    "url": "doc/injection_techniques.md"
+                                },
+                                {
+                                    "title": "Supported types",
+                                    "url": "doc/supported_types.md"
+                                },
+                                {
+                                    "title": "Injection via PHP code",
+                                    "url": "doc/declare_instance_via_php_code.md"
+                                },
+                                {
+                                    "title": "Special annotations",
+                                    "url": "doc/mouf_annotations.md"
+                                }
+                            ]
+                        },
+                        {
+                            "title": "Configuration management",
+                            "url": "doc/configuration_management.md"
+                        },
+                        {
+                            "title": "Creating a Mouf2 package",
+                            "url": "doc/create_mouf_package.md",
+                            "children": [
+                                {
+                                    "title": "Writing a validator",
+                                    "url": "doc/writing_mouf_validator.md",
+                                    "children": [
+                                        {
+                                            "title": "Legacy validators",
+                                            "url": "doc/mouf_legacy_validators.md"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "title": "Writing an install process",
+                                    "url": "doc/install_process.md"
+                                },
+                                {
+                                    "title": "Writing packages documentation",
+                                    "url": "doc/writing_packages_documentation.md"
+                                },
+                                {
+                                    "title": "Extending Mouf user interface",
+                                    "url": "doc/extending_mouf_ui.md"
+                                },
+                                {
+                                    "title": "Managing instances programmatically",
+                                    "url": "doc/managing_instances_programmatically.md"
+                                },
+                                {
+                                    "title": "Utility functions",
+                                    "url": "doc/utility_functions.md"
+                                },
+                                {
+                                    "title": "Integrating your package with full-text search",
+                                    "url": "doc/full_text_search.md"
+                                },
+                                {
+                                    "title": "Weak instances",
+                                    "url": "doc/weak_instances.md"
+                                }
+                            ]
+                        },
+                        {
+                            "title": "Troubleshooting",
+                            "url": "doc/troubleshooting.md",
+                            "children": [
+                                {
+                                    "title": "Troubleshooting installation",
+                                    "url": "doc/troubleshooting_install.md"
+                                }
+                            ]
+                        }
+                    ],
+                    "section": {
+                        "name": "Dependency injection",
+                        "description": "The core of the Mouf framework: the dependency injection module",
+                        "weight": 0
+                    }
+                }
+            },
+            "autoload": {
+                "psr-0": {
+                    "Mouf": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "David Négrier",
+                    "email": "d.negrier@thecodingmachine.com",
+                    "homepage": "http://mouf-php.com"
+                }
+            ],
+            "description": "The Mouf PHP framework: an open-source PHP framework providing an easy way to download, install, use and reuse components, with a graphical user interface.",
+            "homepage": "http://mouf-php.com",
+            "keywords": [
+                "dependency injection",
+                "di",
+                "framework",
+                "inversion of control",
+                "ioc",
+                "mouf"
+            ],
+            "time": "2017-05-23 08:42:28"
+        },
+        {
+            "name": "mouf/mouf-installer",
+            "version": "v2.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/thecodingmachine/mouf-installer.git",
+                "reference": "75cd4295a831b32aabea0b2bb6f4925da6b6e198"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/thecodingmachine/mouf-installer/zipball/75cd4295a831b32aabea0b2bb6f4925da6b6e198",
+                "reference": "75cd4295a831b32aabea0b2bb6f4925da6b6e198",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.3.0"
+            },
+            "type": "composer-installer",
+            "extra": {
+                "class": [
+                    "Mouf\\Installer\\MoufLibraryInstaller",
+                    "Mouf\\Installer\\MoufFrameworkInstaller"
+                ]
+            },
+            "autoload": {
+                "psr-0": {
+                    "Mouf\\Installer": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "David Négrier",
+                    "email": "d.negrier@thecodingmachine.com",
+                    "homepage": "http://mouf-php.com"
+                }
+            ],
+            "description": "The Mouf-installer package is a composer in charge of installing any package with the 'mouf-library' type.",
+            "homepage": "http://mouf-php.com",
+            "keywords": [
+                "install",
+                "mouf"
+            ],
+            "time": "2014-06-03 20:47:09"
+        },
+        {
+            "name": "mouf/mouf-validators-interface",
+            "version": "v2.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/thecodingmachine/mouf-validators-interface.git",
+                "reference": "7678d5c0d4e7113aa4f5345e6896933ff8b5e7ce"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/thecodingmachine/mouf-validators-interface/zipball/7678d5c0d4e7113aa4f5345e6896933ff8b5e7ce",
+                "reference": "7678d5c0d4e7113aa4f5345e6896933ff8b5e7ce",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.3.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-0": {
+                    "Mouf\\Validator": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "David Négrier",
+                    "email": "d.negrier@thecodingmachine.com",
+                    "homepage": "http://mouf-php.com"
+                }
+            ],
+            "description": "The mouf-validators-interface package contains interfaces your classes can implement to provide self-validation in the Mouf interface.",
+            "homepage": "http://mouf-php.com",
+            "keywords": [
+                "mouf",
+                "validators"
+            ],
+            "time": "2013-10-29 18:21:58"
+        },
+        {
+            "name": "mouf/schema-analyzer",
+            "version": "v1.1.3",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/thecodingmachine/schema-analyzer.git",
+                "reference": "7216850b52d1aa70bc5320933ee0af5083db4d67"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/thecodingmachine/schema-analyzer/zipball/7216850b52d1aa70bc5320933ee0af5083db4d67",
+                "reference": "7216850b52d1aa70bc5320933ee0af5083db4d67",
                 "shasum": ""
             },
             "require": {
@@ -655,7 +971,287 @@
                 "MIT"
             ],
             "description": "A package that offers utility tools to analyze database schemas (on top of Doctrine DBAL)",
-            "time": "2017-05-31 15:57:55"
+            "time": "2017-06-26 12:24:11"
+        },
+        {
+            "name": "psr/container",
+            "version": "1.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/php-fig/container.git",
+                "reference": "b7ce3b176482dbbc1245ebf52b181af44c2cf55f"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/php-fig/container/zipball/b7ce3b176482dbbc1245ebf52b181af44c2cf55f",
+                "reference": "b7ce3b176482dbbc1245ebf52b181af44c2cf55f",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.3.0"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "1.0.x-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Psr\\Container\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "PHP-FIG",
+                    "homepage": "http://www.php-fig.org/"
+                }
+            ],
+            "description": "Common Container Interface (PHP FIG PSR-11)",
+            "homepage": "https://github.com/php-fig/container",
+            "keywords": [
+                "PSR-11",
+                "container",
+                "container-interface",
+                "container-interop",
+                "psr"
+            ],
+            "time": "2017-02-14 16:28:37"
+        },
+        {
+            "name": "psr/log",
+            "version": "1.0.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/php-fig/log.git",
+                "reference": "4ebe3a8bf773a19edfe0a84b6585ba3d401b724d"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/php-fig/log/zipball/4ebe3a8bf773a19edfe0a84b6585ba3d401b724d",
+                "reference": "4ebe3a8bf773a19edfe0a84b6585ba3d401b724d",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.3.0"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "1.0.x-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Psr\\Log\\": "Psr/Log/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "PHP-FIG",
+                    "homepage": "http://www.php-fig.org/"
+                }
+            ],
+            "description": "Common interface for logging libraries",
+            "homepage": "https://github.com/php-fig/log",
+            "keywords": [
+                "log",
+                "psr",
+                "psr-3"
+            ],
+            "time": "2016-10-10 12:19:37"
+        },
+        {
+            "name": "symfony/console",
+            "version": "v3.3.4",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/symfony/console.git",
+                "reference": "a97e45d98c59510f085fa05225a1acb74dfe0546"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/symfony/console/zipball/a97e45d98c59510f085fa05225a1acb74dfe0546",
+                "reference": "a97e45d98c59510f085fa05225a1acb74dfe0546",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.5.9",
+                "symfony/debug": "~2.8|~3.0",
+                "symfony/polyfill-mbstring": "~1.0"
+            },
+            "conflict": {
+                "symfony/dependency-injection": "<3.3"
+            },
+            "require-dev": {
+                "psr/log": "~1.0",
+                "symfony/config": "~3.3",
+                "symfony/dependency-injection": "~3.3",
+                "symfony/event-dispatcher": "~2.8|~3.0",
+                "symfony/filesystem": "~2.8|~3.0",
+                "symfony/http-kernel": "~2.8|~3.0",
+                "symfony/process": "~2.8|~3.0"
+            },
+            "suggest": {
+                "psr/log": "For using the console logger",
+                "symfony/event-dispatcher": "",
+                "symfony/filesystem": "",
+                "symfony/process": ""
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "3.3-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Symfony\\Component\\Console\\": ""
+                },
+                "exclude-from-classmap": [
+                    "/Tests/"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Fabien Potencier",
+                    "email": "fabien@symfony.com"
+                },
+                {
+                    "name": "Symfony Community",
+                    "homepage": "https://symfony.com/contributors"
+                }
+            ],
+            "description": "Symfony Console Component",
+            "homepage": "https://symfony.com",
+            "time": "2017-07-03 13:19:36"
+        },
+        {
+            "name": "symfony/debug",
+            "version": "v3.3.4",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/symfony/debug.git",
+                "reference": "63b85a968486d95ff9542228dc2e4247f16f9743"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/symfony/debug/zipball/63b85a968486d95ff9542228dc2e4247f16f9743",
+                "reference": "63b85a968486d95ff9542228dc2e4247f16f9743",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.5.9",
+                "psr/log": "~1.0"
+            },
+            "conflict": {
+                "symfony/http-kernel": ">=2.3,<2.3.24|~2.4.0|>=2.5,<2.5.9|>=2.6,<2.6.2"
+            },
+            "require-dev": {
+                "symfony/http-kernel": "~2.8|~3.0"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "3.3-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Symfony\\Component\\Debug\\": ""
+                },
+                "exclude-from-classmap": [
+                    "/Tests/"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Fabien Potencier",
+                    "email": "fabien@symfony.com"
+                },
+                {
+                    "name": "Symfony Community",
+                    "homepage": "https://symfony.com/contributors"
+                }
+            ],
+            "description": "Symfony Debug Component",
+            "homepage": "https://symfony.com",
+            "time": "2017-07-05 13:02:37"
+        },
+        {
+            "name": "symfony/polyfill-mbstring",
+            "version": "v1.4.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/symfony/polyfill-mbstring.git",
+                "reference": "f29dca382a6485c3cbe6379f0c61230167681937"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/symfony/polyfill-mbstring/zipball/f29dca382a6485c3cbe6379f0c61230167681937",
+                "reference": "f29dca382a6485c3cbe6379f0c61230167681937",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.3.3"
+            },
+            "suggest": {
+                "ext-mbstring": "For best performance"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "1.4-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Symfony\\Polyfill\\Mbstring\\": ""
+                },
+                "files": [
+                    "bootstrap.php"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Nicolas Grekas",
+                    "email": "p@tchwork.com"
+                },
+                {
+                    "name": "Symfony Community",
+                    "homepage": "https://symfony.com/contributors"
+                }
+            ],
+            "description": "Symfony polyfill for the Mbstring extension",
+            "homepage": "https://symfony.com",
+            "keywords": [
+                "compatibility",
+                "mbstring",
+                "polyfill",
+                "portable",
+                "shim"
+            ],
+            "time": "2017-06-09 14:24:12"
         }
     ],
     "packages-dev": [],
